@@ -20,8 +20,8 @@ server_domain = os.getenv("MAILOSAUR_SERVER_DOMAIN")
 # Setup Your Accout Credetials
 first_name = "Test"
 last_name = "Test"
-email = "test02@" + server_domain
-phone_no = "9849623468"
+email = "test199@" + server_domain
+phone_no = "9849623378"
 password = "Goldberg7879@"
 confirm_password = "Goldberg7879@"
 
@@ -53,7 +53,7 @@ certification_details = "test"
 
 options_to_select = ["Australia", "Canada"]
 
-FILE = "D:\\Selenium automation\\Vritech task\\test.pdf"
+FILE = "D:\\Selenium automation\\Vritech task\\file.pdf"
 
 
 
@@ -61,14 +61,22 @@ FILE = "D:\\Selenium automation\\Vritech task\\test.pdf"
 class mysignup(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Chrome()
+        self.driver.maximize_window()
+
+    def validate_url(self, expected):
+        current = self.driver.current_url
+        self.assertIn(
+            expected,
+            current,
+            f"Navigation failed.\nExpected URL to contain: {expected}\nActual URL: {current}"
+        )
+
     def test_sign_up(self):
         driver = self.driver
         try:
             driver.get("https://authorized-partner.vercel.app/")
-        except Exception as ex:
-            print(ex)
-        else:
-
+        
+    
             #Setup Your Account
             driver.find_element(By.XPATH,"//a[@href='/register']//button").click()
             time.sleep(5)
@@ -78,6 +86,8 @@ class mysignup(unittest.TestCase):
 
             driver.find_element(By.XPATH,"//a[@href='register?step=setup']//button").click()
             time.sleep(5)
+
+            self.validate_url("https://authorized-partner.vercel.app/register?step=setup")
 
             
 
@@ -121,9 +131,15 @@ class mysignup(unittest.TestCase):
             mailosaur = MailosaurClient(api_key)
             criteria = SearchCriteria()
             criteria.sent_to = email
+            
             message = mailosaur.messages.get(server_id, criteria)
+            self.assertIsNotNone(message, "OTP email not received")
+
             match = re.search("([0-9]{6})", message.text.body)
+            self.assertIsNotNone(match, "OTP not found in email")
+
             otp = match.group()
+            self.assertEqual(len(otp), 6, "OTP is not 6 digits")
 
 
             form_otp = driver.find_element(By.XPATH, "//input[@autocomplete='one-time-code']")
@@ -133,6 +149,8 @@ class mysignup(unittest.TestCase):
 
             driver.find_element(By.XPATH, "//button[@type='submit']").click()
             time.sleep(5)
+
+            self.validate_url("https://authorized-partner.vercel.app/register?step=details")
 
             
 
@@ -178,6 +196,8 @@ class mysignup(unittest.TestCase):
 
             driver.find_element(By.XPATH, "//button[@type='submit']").click()
             time.sleep(5)
+
+            self.validate_url("https://authorized-partner.vercel.app/register?step=professional-experience")
 
             
 
@@ -225,6 +245,9 @@ class mysignup(unittest.TestCase):
 
             driver.find_element(By.XPATH, "//button[@type='submit']").click()
             time.sleep(5)
+
+
+            self.validate_url("https://authorized-partner.vercel.app/register?step=verification")
 
             
 
@@ -275,11 +298,15 @@ class mysignup(unittest.TestCase):
             driver.find_element(By.XPATH, "//button[@type='submit']").click()
             time.sleep(5)
 
+            
+
            
 
 
             print("Signup Test Complete")
             time.sleep(10)
+        except Exception as ex:
+            print(ex)
 
     
     def tearDown(self):
